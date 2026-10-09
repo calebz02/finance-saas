@@ -1,4 +1,4 @@
-# Finance SaaS
+# Personal Finance Platform
 
 A multi-tenant personal finance app: track accounts, categories, and transactions, import bank CSVs, and see income, expenses, and spending by category over any date range.
 
@@ -6,11 +6,9 @@ It started from a Next.js tutorial. I then rebuilt the backend to be correct and
 
 **Live demo:** https://finance-saas-caleb.vercel.app/. Sign up with any email. Try the import with [`docs/sample-transactions.csv`](docs/sample-transactions.csv).
 
-<!-- Screenshots: save to docs/screenshots/ and uncomment.
 ![Dashboard](docs/screenshots/dashboard.png)
 ![Transactions](docs/screenshots/transactions.png)
-![CSV import](docs/screenshots/import.png)
--->
+![CSV import](docs/screenshots/CSV%20import.png)
 
 ## Features
 
@@ -129,7 +127,7 @@ Use `bun run test`, not `bun test`, which is Bun's own test runner.
 
 ## Deployment
 
-Deployed on Vercel against the Neon `dev` branch (the test and bench branches are never deployed). Migrations are applied manually with `bun run db:migrate` before deploying. Plaid and subscriptions stay off because `ENABLE_PLAID` and `ENABLE_SUBSCRIPTIONS` are unset, so their routes return 404.
+Deployed on Vercel against the Neon `prod` branch (the test and bench branches are never deployed). Migrations are applied manually with `bun run db:migrate` before deploying. Plaid and subscriptions stay off because `ENABLE_PLAID` and `ENABLE_SUBSCRIPTIONS` are unset, so their routes return 404.
 
 ## Limitations and future work
 
