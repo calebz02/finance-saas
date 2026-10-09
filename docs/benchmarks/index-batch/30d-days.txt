@@ -1,0 +1,29 @@
+-- index-batch / 30d / days: median Execution Time 3.02 ms over 10 runs
+-- select "transactions"."transaction_date", SUM(CASE WHEN "transactions"."amount_cents" > 0 THEN "transactions"."amount_cents" ELSE 0 END), SUM(CASE WHEN "transactions"."amount_cents" < 0 THEN ABS("transactions"."amount_cents") ELSE 0 END) from "transactions" inner join "accounts" on "transactions"."account_id" = "accounts"."id" where ("accounts"."user_id" = $1 and "transactions"."transaction_date" >= $2 and "transactions"."transaction_date" <= $3) group by "transactions"."transaction_date" order by "transactions"."transaction_date"
+-- params: ["bench_heavy","2026-09-01","2026-09-30"]
+
+GroupAggregate  (cost=742.60..747.77 rows=188 width=20) (actual time=2.206..2.862 rows=30.00 loops=1)
+  Group Key: transactions.transaction_date
+  Buffers: shared hit=766
+  ->  Sort  (cost=742.60..743.07 rows=188 width=8) (actual time=2.175..2.381 rows=4129.00 loops=1)
+        Sort Key: transactions.transaction_date
+        Sort Method: quicksort  Memory: 289kB
+        Buffers: shared hit=766
+        ->  Nested Loop  (cost=5.23..735.50 rows=188 width=8) (actual time=0.079..1.699 rows=4129.00 loops=1)
+              Buffers: shared hit=766
+              ->  Seq Scan on accounts  (cost=0.00..5.66 rows=3 width=25) (actual time=0.009..0.023 rows=3.00 loops=1)
+                    Filter: (user_id = 'bench_heavy'::text)
+                    Rows Removed by Filter: 210
+                    Buffers: shared hit=3
+              ->  Bitmap Heap Scan on transactions  (cost=5.23..242.65 rows=63 width=33) (actual time=0.061..0.386 rows=1376.33 loops=3)
+                    Recheck Cond: ((account_id = accounts.id) AND (transaction_date >= '2026-09-01'::date) AND (transaction_date <= '2026-09-30'::date))
+                    Heap Blocks: exact=750
+                    Buffers: shared hit=763
+                    ->  Bitmap Index Scan on transactions_account_id_transaction_date_idx  (cost=0.00..5.21 rows=63 width=0) (actual time=0.040..0.040 rows=1376.33 loops=3)
+                          Index Cond: ((account_id = accounts.id) AND (transaction_date >= '2026-09-01'::date) AND (transaction_date <= '2026-09-30'::date))
+                          Index Searches: 3
+                          Buffers: shared hit=13
+Planning:
+  Buffers: shared hit=18
+Planning Time: 0.252 ms
+Execution Time: 2.898 ms

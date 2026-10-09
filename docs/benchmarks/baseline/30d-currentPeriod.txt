@@ -1,0 +1,30 @@
+-- baseline / 30d / currentPeriod: median Execution Time 47.52 ms over 10 runs
+-- select COALESCE(SUM(CASE WHEN "transactions"."amount_cents" > 0 THEN "transactions"."amount_cents" ELSE 0 END), 0), COALESCE(SUM(CASE WHEN "transactions"."amount_cents" < 0 THEN "transactions"."amount_cents" ELSE 0 END), 0), COALESCE(sum("transactions"."amount_cents"), 0) from "transactions" inner join "accounts" on "transactions"."account_id" = "accounts"."id" where ("accounts"."user_id" = $1 and "transactions"."transaction_date" >= $2 and "transactions"."transaction_date" <= $3)
+-- params: ["bench_heavy","2026-09-01","2026-09-30"]
+
+Finalize Aggregate  (cost=13311.33..13311.34 rows=1 width=24) (actual time=51.108..51.179 rows=1.00 loops=1)
+  Buffers: shared hit=9163
+  ->  Gather  (cost=13311.11..13311.32 rows=2 width=24) (actual time=45.489..51.171 rows=3.00 loops=1)
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=9163
+        ->  Partial Aggregate  (cost=12311.11..12311.12 rows=1 width=24) (actual time=39.055..39.057 rows=1.00 loops=3)
+              Buffers: shared hit=9163
+              ->  Hash Join  (cost=5.70..12310.05 rows=85 width=4) (actual time=31.397..38.919 rows=1376.33 loops=3)
+                    Hash Cond: (transactions.account_id = accounts.id)
+                    Buffers: shared hit=9163
+                    ->  Parallel Seq Scan on transactions  (cost=0.00..12288.19 rows=6035 width=29) (actual time=31.306..38.314 rows=4559.00 loops=3)
+                          Filter: ((transaction_date >= '2026-09-01'::date) AND (transaction_date <= '2026-09-30'::date))
+                          Rows Removed by Filter: 162598
+                          Buffers: shared hit=9154
+                    ->  Hash  (cost=5.66..5.66 rows=3 width=25) (actual time=0.044..0.045 rows=3.00 loops=3)
+                          Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                          Buffers: shared hit=9
+                          ->  Seq Scan on accounts  (cost=0.00..5.66 rows=3 width=25) (actual time=0.028..0.041 rows=3.00 loops=3)
+                                Filter: (user_id = 'bench_heavy'::text)
+                                Rows Removed by Filter: 210
+                                Buffers: shared hit=9
+Planning:
+  Buffers: shared hit=18
+Planning Time: 0.273 ms
+Execution Time: 51.225 ms

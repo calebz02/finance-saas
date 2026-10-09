@@ -1,0 +1,46 @@
+-- index / 365d / categories: median Execution Time 41.83 ms over 10 runs
+-- select COALESCE("categories"."name", 'Uncategorized'), SUM(ABS("transactions"."amount_cents")) from "transactions" inner join "accounts" on "transactions"."account_id" = "accounts"."id" left join "categories" on ("transactions"."category_id" = "categories"."id" and "categories"."user_id" = $1) where ("accounts"."user_id" = $2 and "transactions"."amount_cents" < $3 and "transactions"."transaction_date" >= $4 and "transactions"."transaction_date" <= $5) group by COALESCE("categories"."name", 'Uncategorized') order by SUM(ABS("transactions"."amount_cents")) desc
+-- params: ["bench_heavy","bench_heavy",0,"2025-10-01","2026-09-30"]
+
+Sort  (cost=6722.74..6722.76 rows=8 width=40) (actual time=40.054..40.059 rows=12.00 loops=1)
+  Sort Key: (sum(abs(transactions.amount_cents))) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=9182
+  ->  HashAggregate  (cost=6722.54..6722.62 rows=8 width=40) (actual time=40.042..40.048 rows=12.00 loops=1)
+        Group Key: COALESCE(categories.name, 'Uncategorized'::text)
+        Batches: 1  Memory Usage: 32kB
+        Buffers: shared hit=9182
+        ->  Hash Left Join  (cost=33.81..6706.94 rows=2081 width=36) (actual time=0.724..31.504 rows=45209.00 loops=1)
+              Hash Cond: (transactions.category_id = categories.id)
+              Buffers: shared hit=9182
+              ->  Nested Loop  (cost=22.27..6689.90 rows=2081 width=29) (actual time=0.706..22.529 rows=45209.00 loops=1)
+                    Buffers: shared hit=9180
+                    ->  Seq Scan on accounts  (cost=0.00..5.66 rows=3 width=25) (actual time=0.012..0.031 rows=3.00 loops=1)
+                          Filter: (user_id = 'bench_heavy'::text)
+                          Rows Removed by Filter: 210
+                          Buffers: shared hit=3
+                    ->  Bitmap Heap Scan on transactions  (cost=22.27..2221.14 rows=694 width=54) (actual time=0.698..6.021 rows=15069.67 loops=3)
+                          Recheck Cond: ((account_id = accounts.id) AND (transaction_date >= '2025-10-01'::date) AND (transaction_date <= '2026-09-30'::date))
+                          Filter: (amount_cents < 0)
+                          Rows Removed by Filter: 1631
+                          Heap Blocks: exact=9120
+                          Buffers: shared hit=9177
+                          ->  Bitmap Index Scan on transactions_account_id_transaction_date_idx  (cost=0.00..22.10 rows=774 width=0) (actual time=0.414..0.414 rows=16700.67 loops=3)
+                                Index Cond: ((account_id = accounts.id) AND (transaction_date >= '2025-10-01'::date) AND (transaction_date <= '2026-09-30'::date))
+                                Index Searches: 3
+                                Buffers: shared hit=57
+              ->  Hash  (cost=11.39..11.39 rows=12 width=33) (actual time=0.014..0.016 rows=12.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=2
+                    ->  Bitmap Heap Scan on categories  (cost=4.24..11.39 rows=12 width=33) (actual time=0.008..0.010 rows=12.00 loops=1)
+                          Recheck Cond: (user_id = 'bench_heavy'::text)
+                          Heap Blocks: exact=1
+                          Buffers: shared hit=2
+                          ->  Bitmap Index Scan on categories_user_id_plaid_category_unique  (cost=0.00..4.24 rows=12 width=0) (actual time=0.004..0.004 rows=12.00 loops=1)
+                                Index Cond: (user_id = 'bench_heavy'::text)
+                                Index Searches: 1
+                                Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=26
+Planning Time: 0.385 ms
+Execution Time: 40.122 ms

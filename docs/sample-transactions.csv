@@ -1,0 +1,19 @@
+date,payee,amount,notes
+2026-09-01,Acme Corp Payroll,"$3,250.00",Salary
+2026-09-02,Landlord LLC,-1450.00,Rent
+2026-09-03,Whole Foods,-86.42,Groceries
+2026-09-05,Blue Bottle Coffee,-6.75,
+2026-09-07,Shell,-48.10,Gas
+2026-09-09,Trader Joe's,-54.19,Groceries
+2026-09-12,Netflix,-15.49,Subscription
+2026-09-14,Chipotle,-13.85,
+2026-09-15,Acme Corp Payroll,"$3,250.00",Salary
+2026-09-16,ConEd,-92.37,Electric bill
+2026-09-18,Amazon,-39.99,
+2026-09-20,Venmo - Alex,25.00,Dinner split
+2026-09-22,Whole Foods,-71.06,Groceries
+2026-09-24,Uber,-18.40,
+2026-09-26,CVS Pharmacy,-12.29,
+09/28/2026,Spotify,-11.99,Subscription
+09/29/2026,Shell,-44.75,Gas
+09/30/2026,Interest,0.84,Savings interest

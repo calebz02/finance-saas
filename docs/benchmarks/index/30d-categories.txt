@@ -1,0 +1,49 @@
+-- index / 30d / categories: median Execution Time 4.07 ms over 10 runs
+-- select COALESCE("categories"."name", 'Uncategorized'), SUM(ABS("transactions"."amount_cents")) from "transactions" inner join "accounts" on "transactions"."account_id" = "accounts"."id" left join "categories" on ("transactions"."category_id" = "categories"."id" and "categories"."user_id" = $1) where ("accounts"."user_id" = $2 and "transactions"."amount_cents" < $3 and "transactions"."transaction_date" >= $4 and "transactions"."transaction_date" <= $5) group by COALESCE("categories"."name", 'Uncategorized') order by SUM(ABS("transactions"."amount_cents")) desc
+-- params: ["bench_heavy","bench_heavy",0,"2026-09-01","2026-09-30"]
+
+Sort  (cost=755.89..755.91 rows=8 width=40) (actual time=3.865..3.868 rows=12.00 loops=1)
+  Sort Key: (sum(abs(transactions.amount_cents))) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=768
+  ->  GroupAggregate  (cost=754.00..755.77 rows=8 width=40) (actual time=3.291..3.860 rows=12.00 loops=1)
+        Group Key: (COALESCE(categories.name, 'Uncategorized'::text))
+        Buffers: shared hit=768
+        ->  Sort  (cost=754.00..754.42 rows=169 width=36) (actual time=3.226..3.415 rows=3725.00 loops=1)
+              Sort Key: (COALESCE(categories.name, 'Uncategorized'::text))
+              Sort Method: quicksort  Memory: 219kB
+              Buffers: shared hit=768
+              ->  Hash Left Join  (cost=16.77..747.74 rows=169 width=36) (actual time=0.099..2.505 rows=3725.00 loops=1)
+                    Hash Cond: (transactions.category_id = categories.id)
+                    Buffers: shared hit=768
+                    ->  Nested Loop  (cost=5.22..735.76 rows=169 width=29) (actual time=0.083..1.767 rows=3725.00 loops=1)
+                          Buffers: shared hit=766
+                          ->  Seq Scan on accounts  (cost=0.00..5.66 rows=3 width=25) (actual time=0.012..0.027 rows=3.00 loops=1)
+                                Filter: (user_id = 'bench_heavy'::text)
+                                Rows Removed by Filter: 210
+                                Buffers: shared hit=3
+                          ->  Bitmap Heap Scan on transactions  (cost=5.22..242.80 rows=56 width=54) (actual time=0.068..0.459 rows=1241.67 loops=3)
+                                Recheck Cond: ((account_id = accounts.id) AND (transaction_date >= '2026-09-01'::date) AND (transaction_date <= '2026-09-30'::date))
+                                Filter: (amount_cents < 0)
+                                Rows Removed by Filter: 135
+                                Heap Blocks: exact=750
+                                Buffers: shared hit=763
+                                ->  Bitmap Index Scan on transactions_account_id_transaction_date_idx  (cost=0.00..5.21 rows=63 width=0) (actual time=0.046..0.046 rows=1376.33 loops=3)
+                                      Index Cond: ((account_id = accounts.id) AND (transaction_date >= '2026-09-01'::date) AND (transaction_date <= '2026-09-30'::date))
+                                      Index Searches: 3
+                                      Buffers: shared hit=13
+                    ->  Hash  (cost=11.39..11.39 rows=12 width=33) (actual time=0.012..0.013 rows=12.00 loops=1)
+                          Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                          Buffers: shared hit=2
+                          ->  Bitmap Heap Scan on categories  (cost=4.24..11.39 rows=12 width=33) (actual time=0.007..0.009 rows=12.00 loops=1)
+                                Recheck Cond: (user_id = 'bench_heavy'::text)
+                                Heap Blocks: exact=1
+                                Buffers: shared hit=2
+                                ->  Bitmap Index Scan on categories_user_id_plaid_category_unique  (cost=0.00..4.24 rows=12 width=0) (actual time=0.003..0.003 rows=12.00 loops=1)
+                                      Index Cond: (user_id = 'bench_heavy'::text)
+                                      Index Searches: 1
+                                      Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=26
+Planning Time: 0.419 ms
+Execution Time: 3.925 ms

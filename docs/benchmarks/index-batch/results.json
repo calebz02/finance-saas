@@ -1,0 +1,77 @@
+{
+  "label": "index-batch",
+  "measuredAt": "2026-10-08T22:37:21.347Z",
+  "database": "ep-fancy-surf-b5kwasu3.c-7.us-east-2.aws.neon.tech/neondb",
+  "environment": {
+    "postgres": "PostgreSQL 18.6 (4e955f5) on aarch64-unknown-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit",
+    "shared_buffers": "230MB",
+    "work_mem": "4MB",
+    "random_page_cost": "4"
+  },
+  "dataset": {
+    "transactions": 501471,
+    "accounts": 213,
+    "categories": 572,
+    "users": 71,
+    "measured_user_accounts": 3,
+    "measured_user_transactions": 150000,
+    "first_date": "2023-10-01",
+    "last_date": "2026-09-30",
+    "transaction_indexes": "transactions_account_id_plaid_transaction_id_unique, transactions_account_id_transaction_date_idx, transactions_pkey"
+  },
+  "method": {
+    "measuredUser": "bench_heavy",
+    "explain": "3 warm-ups, median of 10 EXPLAIN (ANALYZE, BUFFERS) runs per query (pg over TCP)",
+    "wallClock": "5 warm-ups, 25 measured getSummary calls (neon-http, from the developer laptop)"
+  },
+  "neonHttpSelect1Ms": {
+    "p50": 24.34,
+    "p95": 33.89,
+    "min": 22.86,
+    "max": 39.81
+  },
+  "results": {
+    "30d": {
+      "range": {
+        "from": "2026-09-01",
+        "to": "2026-09-30"
+      },
+      "measuredUserRowsInRange": 4129,
+      "postgresExecutionMsMedian": {
+        "currentPeriod": 2.13,
+        "lastPeriod": 2.23,
+        "categories": 3.9,
+        "days": 3.02,
+        "total": 11.28
+      },
+      "getSummaryWallClockMs": {
+        "p50": 46.92,
+        "p95": 67.35,
+        "min": 40.23,
+        "max": 75.47
+      },
+      "resultSha256": "6b04c0e9c3eb18c14abfb4c265fce8a56865082daf2a7b89eab078c2357525f8"
+    },
+    "365d": {
+      "range": {
+        "from": "2025-10-01",
+        "to": "2026-09-30"
+      },
+      "measuredUserRowsInRange": 50102,
+      "postgresExecutionMsMedian": {
+        "currentPeriod": 27.18,
+        "lastPeriod": 26.4,
+        "categories": 40.55,
+        "days": 31.24,
+        "total": 125.37
+      },
+      "getSummaryWallClockMs": {
+        "p50": 136.88,
+        "p95": 161.35,
+        "min": 126.43,
+        "max": 190.85
+      },
+      "resultSha256": "7c5ded3c2a4a54132a901e70e866da7085dc86da883181413d51dd5460996b82"
+    }
+  }
+}

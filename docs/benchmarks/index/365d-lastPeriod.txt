@@ -1,0 +1,24 @@
+-- index / 365d / lastPeriod: median Execution Time 26.91 ms over 10 runs
+-- select COALESCE(SUM(CASE WHEN "transactions"."amount_cents" > 0 THEN "transactions"."amount_cents" ELSE 0 END), 0), COALESCE(SUM(CASE WHEN "transactions"."amount_cents" < 0 THEN "transactions"."amount_cents" ELSE 0 END), 0), COALESCE(sum("transactions"."amount_cents"), 0) from "transactions" inner join "accounts" on "transactions"."account_id" = "accounts"."id" where ("accounts"."user_id" = $1 and "transactions"."transaction_date" >= $2 and "transactions"."transaction_date" <= $3)
+-- params: ["bench_heavy","2024-10-01","2025-09-30"]
+
+Aggregate  (cost=6808.95..6808.96 rows=1 width=24) (actual time=27.233..27.234 rows=1.00 loops=1)
+  Buffers: shared hit=9215
+  ->  Nested Loop  (cost=22.47..6779.40 rows=2364 width=4) (actual time=0.724..22.660 rows=49788.00 loops=1)
+        Buffers: shared hit=9215
+        ->  Seq Scan on accounts  (cost=0.00..5.66 rows=3 width=25) (actual time=0.011..0.036 rows=3.00 loops=1)
+              Filter: (user_id = 'bench_heavy'::text)
+              Rows Removed by Filter: 210
+              Buffers: shared hit=3
+        ->  Bitmap Heap Scan on transactions  (cost=22.47..2250.03 rows=788 width=29) (actual time=0.773..5.403 rows=16596.00 loops=3)
+              Recheck Cond: ((account_id = accounts.id) AND (transaction_date >= '2024-10-01'::date) AND (transaction_date <= '2025-09-30'::date))
+              Heap Blocks: exact=9157
+              Buffers: shared hit=9212
+              ->  Bitmap Index Scan on transactions_account_id_transaction_date_idx  (cost=0.00..22.27 rows=788 width=0) (actual time=0.496..0.496 rows=16596.00 loops=3)
+                    Index Cond: ((account_id = accounts.id) AND (transaction_date >= '2024-10-01'::date) AND (transaction_date <= '2025-09-30'::date))
+                    Index Searches: 3
+                    Buffers: shared hit=55
+Planning:
+  Buffers: shared hit=18
+Planning Time: 0.294 ms
+Execution Time: 27.278 ms

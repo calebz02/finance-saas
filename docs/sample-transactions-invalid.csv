@@ -1,0 +1,5 @@
+date,payee,amount,notes
+2026-09-01,Acme Corp Payroll,"$3,250.00",Salary
+2026-09-02,Landlord LLC,-1450.00,Rent
+2026-09-03,Whole Foods,"12,34",European decimal comma is rejected
+2026-09-05,Blue Bottle Coffee,-6.75,

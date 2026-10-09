@@ -1,0 +1,56 @@
+-- baseline / 30d / categories: median Execution Time 53.91 ms over 10 runs
+-- select COALESCE("categories"."name", 'Uncategorized'), SUM(ABS("transactions"."amount_cents")) from "transactions" inner join "accounts" on "transactions"."account_id" = "accounts"."id" left join "categories" on ("transactions"."category_id" = "categories"."id" and "categories"."user_id" = $1) where ("accounts"."user_id" = $2 and "transactions"."amount_cents" < $3 and "transactions"."transaction_date" >= $4 and "transactions"."transaction_date" <= $5) group by COALESCE("categories"."name", 'Uncategorized') order by SUM(ABS("transactions"."amount_cents")) desc
+-- params: ["bench_heavy","bench_heavy",0,"2026-09-01","2026-09-30"]
+
+Sort  (cost=13848.20..13848.22 rows=8 width=40) (actual time=50.096..53.749 rows=12.00 loops=1)
+  Sort Key: (sum(abs(transactions.amount_cents))) DESC
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=9187
+  ->  Finalize GroupAggregate  (cost=13844.88..13848.08 rows=8 width=40) (actual time=50.081..53.741 rows=12.00 loops=1)
+        Group Key: (COALESCE(categories.name, 'Uncategorized'::text))
+        Buffers: shared hit=9187
+        ->  Gather Merge  (cost=13844.88..13847.91 rows=19 width=40) (actual time=50.076..53.732 rows=25.00 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=9187
+              ->  Partial GroupAggregate  (cost=12844.85..12845.69 rows=8 width=40) (actual time=41.489..41.683 rows=8.33 loops=3)
+                    Group Key: (COALESCE(categories.name, 'Uncategorized'::text))
+                    Buffers: shared hit=9187
+                    ->  Sort  (cost=12844.85..12845.04 rows=76 width=36) (actual time=41.464..41.534 rows=1241.67 loops=3)
+                          Sort Key: (COALESCE(categories.name, 'Uncategorized'::text))
+                          Sort Method: quicksort  Memory: 25kB
+                          Buffers: shared hit=9187
+                          Worker 0:  Sort Method: quicksort  Memory: 99kB
+                          Worker 1:  Sort Method: quicksort  Memory: 169kB
+                          ->  Hash Left Join  (cost=17.24..12842.48 rows=76 width=36) (actual time=35.244..39.773 rows=1241.67 loops=3)
+                                Hash Cond: (transactions.category_id = categories.id)
+                                Buffers: shared hit=9171
+                                ->  Hash Join  (cost=5.70..12830.74 rows=76 width=29) (actual time=35.208..39.473 rows=1241.67 loops=3)
+                                      Hash Cond: (transactions.account_id = accounts.id)
+                                      Buffers: shared hit=9163
+                                      ->  Parallel Seq Scan on transactions  (cost=0.00..12810.56 rows=5409 width=54) (actual time=35.134..38.886 rows=4122.33 loops=3)
+                                            Filter: ((amount_cents < 0) AND (transaction_date >= '2026-09-01'::date) AND (transaction_date <= '2026-09-30'::date))
+                                            Rows Removed by Filter: 163035
+                                            Buffers: shared hit=9154
+                                      ->  Hash  (cost=5.66..5.66 rows=3 width=25) (actual time=0.041..0.042 rows=3.00 loops=3)
+                                            Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                            Buffers: shared hit=9
+                                            ->  Seq Scan on accounts  (cost=0.00..5.66 rows=3 width=25) (actual time=0.019..0.033 rows=3.00 loops=3)
+                                                  Filter: (user_id = 'bench_heavy'::text)
+                                                  Rows Removed by Filter: 210
+                                                  Buffers: shared hit=9
+                                ->  Hash  (cost=11.39..11.39 rows=12 width=33) (actual time=0.025..0.026 rows=12.00 loops=3)
+                                      Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                      Buffers: shared hit=8
+                                      ->  Bitmap Heap Scan on categories  (cost=4.24..11.39 rows=12 width=33) (actual time=0.021..0.023 rows=12.00 loops=3)
+                                            Recheck Cond: (user_id = 'bench_heavy'::text)
+                                            Heap Blocks: exact=1
+                                            Buffers: shared hit=8
+                                            ->  Bitmap Index Scan on categories_user_id_plaid_category_unique  (cost=0.00..4.24 rows=12 width=0) (actual time=0.010..0.010 rows=12.00 loops=3)
+                                                  Index Cond: (user_id = 'bench_heavy'::text)
+                                                  Index Searches: 3
+                                                  Buffers: shared hit=5
+Planning:
+  Buffers: shared hit=26
+Planning Time: 0.420 ms
+Execution Time: 53.826 ms

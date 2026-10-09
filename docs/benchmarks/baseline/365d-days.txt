@@ -1,0 +1,35 @@
+-- baseline / 365d / days: median Execution Time 95.18 ms over 10 runs
+-- select "transactions"."transaction_date", SUM(CASE WHEN "transactions"."amount_cents" > 0 THEN "transactions"."amount_cents" ELSE 0 END), SUM(CASE WHEN "transactions"."amount_cents" < 0 THEN ABS("transactions"."amount_cents") ELSE 0 END) from "transactions" inner join "accounts" on "transactions"."account_id" = "accounts"."id" where ("accounts"."user_id" = $1 and "transactions"."transaction_date" >= $2 and "transactions"."transaction_date" <= $3) group by "transactions"."transaction_date" order by "transactions"."transaction_date"
+-- params: ["bench_heavy","2025-10-01","2026-09-30"]
+
+GroupAggregate  (cost=13529.00..13849.30 rows=1096 width=20) (actual time=40.313..55.016 rows=365.00 loops=1)
+  Group Key: transactions.transaction_date
+  Buffers: shared hit=9179
+  ->  Gather Merge  (cost=13529.00..13803.04 rows=2353 width=8) (actual time=40.260..49.465 rows=50102.00 loops=1)
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=9179
+        ->  Sort  (cost=12528.97..12531.42 rows=980 width=8) (actual time=34.853..35.672 rows=16700.67 loops=3)
+              Sort Key: transactions.transaction_date
+              Sort Method: quicksort  Memory: 1375kB
+              Buffers: shared hit=9179
+              Worker 0:  Sort Method: quicksort  Memory: 638kB
+              Worker 1:  Sort Method: quicksort  Memory: 699kB
+              ->  Hash Join  (cost=5.70..12480.28 rows=980 width=8) (actual time=8.869..32.424 rows=16700.67 loops=3)
+                    Hash Cond: (transactions.account_id = accounts.id)
+                    Buffers: shared hit=9163
+                    ->  Parallel Seq Scan on transactions  (cost=0.00..12288.19 rows=69620 width=33) (actual time=8.731..21.589 rows=55558.67 loops=3)
+                          Filter: ((transaction_date >= '2025-10-01'::date) AND (transaction_date <= '2026-09-30'::date))
+                          Rows Removed by Filter: 111598
+                          Buffers: shared hit=9154
+                    ->  Hash  (cost=5.66..5.66 rows=3 width=25) (actual time=0.038..0.039 rows=3.00 loops=3)
+                          Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                          Buffers: shared hit=9
+                          ->  Seq Scan on accounts  (cost=0.00..5.66 rows=3 width=25) (actual time=0.020..0.033 rows=3.00 loops=3)
+                                Filter: (user_id = 'bench_heavy'::text)
+                                Rows Removed by Filter: 210
+                                Buffers: shared hit=9
+Planning:
+  Buffers: shared hit=18
+Planning Time: 0.281 ms
+Execution Time: 55.274 ms
