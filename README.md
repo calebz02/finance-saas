@@ -6,9 +6,9 @@ It started from a Next.js tutorial. I then rebuilt the backend to be correct and
 
 **Live demo:** https://finance-saas-caleb.vercel.app/. Sign up with any email. Try the import with [`docs/sample-transactions.csv`](docs/sample-transactions.csv).
 
-![Dashboard](docs/screenshots/dashboard.png)
-![Transactions](docs/screenshots/transactions.png)
-![CSV import](docs/screenshots/CSV%20import.png)
+![Dashboard](docs/screenshots/Dashboard.png)
+![Transactions](docs/screenshots/Transactions.png)
+![CSV import](docs/screenshots/CSV_import.png)
 
 ## Features
 
